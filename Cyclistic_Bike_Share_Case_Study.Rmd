@@ -1,0 +1,420 @@
+---
+title: "Cyclistic Bike-Share:Case Study"
+author: "Tade"
+date: "08/01/2022"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#  Introduction
+
+Google Data Analytics Professional Certificate: Capstone Project
+
+
+## Scenario
+
+In 2016, Cyclistic launched a successful bike-share offering. Since then, the program has grown to a fleet of 5,824 bicycles that are geotracked and locked into a network of 692 stations across Chicago. The bikes can be unlocked from one station and returned to any other station in the system anytime.
+
+Until now, Cyclistic’s marketing strategy relied on building general awareness and appealing to broad consumer segments.
+One approach that helped make these things possible was the flexibility of its pricing plans: single-ride passes, full-day passes,and annual memberships. Customers who purchase single-ride or full-day passes are referred to as casual riders. Customers who purchase annual memberships are Cyclistic members.
+
+Cyclistic’s finance analysts have concluded that annual members are much more profitable than casual riders. Although the pricing flexibility helps Cyclistic attract more customers, Moreno believes that maximizing the number of annual members will be key to future growth. Rather than creating a marketing campaign that targets all-new customers, Moreno believes there is a
+very good chance to convert casual riders into members. She notes that casual riders are already aware of the Cyclistic program and have chosen Cyclistic for their mobility needs
+
+**Goal:** Design marketing strategies aimed at converting casual riders into annual members
+
+**Primary stakeholders:** The director of marketing Lily Moreno and Cyclistic executive team.
+
+**Secondary stakeholders:** Cyclistic marketing analytics team.
+
+
+## STEP 1: Load packages
+
+# tidyverse for data import and wrangling
+# libridate for date functions
+# ggplot for visualization
+
+
+```{r install packages}
+library(tidyverse)
+library(readr)
+library(ggplot2)
+library(dplyr)
+library(lubridate)
+library(skimr)
+```
+
+## Import data
+
+Data collected from the company website which covers a one year period from April 2020 to March 2021. The dataset has been made available under this license
+[license]agreement(https://ride.divvybikes.com/data-license-agreement) and [data source](https://divvy-tripdata.s3.amazonaws.com/index.html) .
+
+In the chunk below, i will use the `read_csv()` function to import data from a .csv in the project folder called "hotel_bookings.csv" and save it as a data frame called `hotel_bookings`.
+
+```{r}
+apr_2020 <- read_csv("divvy-trip-data/202004-divvy-tripdata.csv")
+may_2020 <- read_csv("divvy-trip-data/202005-divvy-tripdata.csv")
+jun_2020 <- read_csv("divvy-trip-data/202006-divvy-tripdata.csv")
+jul_2020 <- read_csv("divvy-trip-data/202007-divvy-tripdata.csv")
+aug_2020 <- read_csv("divvy-trip-data/202008-divvy-tripdata.csv")
+sep_2020 <- read_csv("divvy-trip-data/202009-divvy-tripdata.csv")
+oct_2020 <- read_csv("divvy-trip-data/202010-divvy-tripdata.csv")
+nov_2020 <- read_csv("divvy-trip-data/202011-divvy-tripdata.csv")
+dec_2020 <- read_csv("divvy-trip-data/202012-divvy-tripdata.csv")
+jan_2021 <- read_csv("divvy-trip-data/202101-divvy-tripdata.csv")
+feb_2021 <- read_csv("divvy-trip-data/202102-divvy-tripdata.csv")
+mar_2021 <- read_csv("divvy-trip-data/202103-divvy-tripdata.csv")
+```
+
+# STEP 2: Data wrangling, merging, and cleaning
+
+* Compare file name in each of the dataframes
+* Check for inconsistencies and make correction
+* Marge files to a single file
+
+
+```{r colnames}
+colnames(apr_2020)
+colnames(may_2020)
+colnames(jun_2020)
+colnames(jul_2020)
+colnames(aug_2020)
+colnames(sep_2020)
+colnames(oct_2020)
+colnames(nov_2020)
+colnames(dec_2020)
+colnames(jan_2021)
+colnames(feb_2021)
+colnames(mar_2021)
+
+```
+
+Column names are consistent across the dataframes ,next step is to check the data types.
+
+## Checking for data types
+
+```{r str()}
+str(apr_2020)
+str(may_2020)
+str(jun_2020)
+str(jul_2020)
+str(aug_2020)
+str(sep_2020)
+str(oct_2020)
+str(nov_2020)
+str(dec_2020)
+str(jan_2021)
+str(feb_2021)
+str(mar_2021)
+
+```
+
+## Correct inconsistencies with data types
+
+Convert start_station_id and end_station_id to character so that they can stack correctly.
+
+Start_station_id and end_station_id Columns apr_2020 - nov_2020 dataframes are doubles.
+
+```{r}
+apr_2020 <-  mutate(apr_2020, start_station_id = as.character(start_station_id)
+                   ,end_station_id = as.character(end_station_id))
+may_2020 <-  mutate(may_2020, start_station_id = as.character(start_station_id)
+                   ,end_station_id = as.character(end_station_id))
+jun_2020 <-  mutate(jun_2020, start_station_id = as.character(start_station_id)
+                   ,end_station_id = as.character(end_station_id))
+jul_2020 <-  mutate(jul_2020, start_station_id = as.character(start_station_id)
+                   ,end_station_id = as.character(end_station_id))
+aug_2020 <-  mutate(aug_2020, start_station_id = as.character(start_station_id)
+                   ,end_station_id = as.character(end_station_id))
+sep_2020 <-  mutate(sep_2020, start_station_id = as.character(start_station_id)
+                   ,end_station_id = as.character(end_station_id))
+oct_2020 <-  mutate(oct_2020, start_station_id = as.character(start_station_id)
+                   ,end_station_id = as.character(end_station_id))
+nov_2020 <-  mutate(nov_2020, start_station_id = as.character(start_station_id)
+                   ,end_station_id = as.character(end_station_id))
+```
+
+# Stack individual quarter's data frames into one big data frame
+
+```{r}
+all_trips <- bind_rows(apr_2020, may_2020, jun_2020, jul_2020, aug_2020, sep_2020, oct_2020, nov_2020
+                       , dec_2020, jan_2021, feb_2021, mar_2021)
+```
+
+
+```{r}
+head(all_trips)
+```
+
+
+
+# Remove irrelevant data from the data frame
+
+I will remove  ride_id, station_id and end_station_id. In the code chunk below I use the select() and c() functions to remove irrelevant data columns from the dataframe.
+
+```{r}
+all_trips <- all_trips %>%
+  select(-c(ride_id, start_station_id, end_station_id))
+
+```
+
+# Clean up data
+Checking the new table that i created
+
+```{r}
+skim_without_charts(all_trips)
+```
+
+```{r}
+head(all_trips)
+```
+
+
+```{r}
+tail(all_trips)
+```
+
+
+# Adding Data
+ I want to add new columns for 'date', 'month', 'day', 'year, 'day_of_week', and 'hour'. These new columns will allow me to aggregate the data for different time periods of each ride
+ 
+ The default format is yyyy-mm-dd
+ 
+```{r}
+all_trips$date <- as.Date(all_trips$started_at) 
+all_trips$month <- format(as.Date(all_trips$date), "%m")
+all_trips$day <- format(as.Date(all_trips$date), "%d")
+all_trips$year <- format(as.Date(all_trips$date), "%Y")
+all_trips$day_of_week <- format(as.Date(all_trips$date), "%A")
+
+```
+ 
+# Adding a new variable called "ride_length" to all_trips 
+
+```{r}
+all_trips$ride_length <- difftime(all_trips$ended_at, all_trips$started_at)
+```
+
+
+# inspect the structure of the columns
+
+```{r}
+str(all_trips)
+```
+
+
+
+# Convert "ride_length" from Factor to numeric so we can run calculations on the data
+
+```{r}
+is.factor(all_trips$ride_length)
+all_trips$ride_length <- as.numeric(as.character(all_trips$ride_length))
+is.numeric(all_trips$ride_length)
+```
+
+# Remove data error
+The dataframe includes a few hundred entries when bikes were taken out of docks and checked for quality by Divvy or ride_length was negative
+
+I will create a new version of the dataframe (v2) since data is being removed
+
+```{r}
+all_trips_v2 <- all_trips[!(all_trips$ride_length<0),]
+```
+
+
+
+# Remove NA values
+
+```{r}
+all_trips_v2 <- na.omit(all_trips_v2)
+```
+
+
+# STEP 3: Analyze
+
+ Descriptive analysis on ride_length (all figures in seconds)
+ 
+```{r}
+summary(all_trips_v2$ride_length)
+```
+ 
+
+# Compare members and casual users
+
+straight average (total ride length / rides)
+
+```{r}
+aggregate(all_trips_v2$ride_length ~ all_trips_v2$member_casual, FUN = mean)
+```
+
+
+
+# midpoint number in the ascending array of ride lengths
+
+
+```{r}
+aggregate(all_trips_v2$ride_length ~ all_trips_v2$member_casual, FUN = median)
+```
+
+
+
+# Longest ride
+
+```{r}
+aggregate(all_trips_v2$ride_length ~ all_trips_v2$member_casual, FUN = max)
+```
+
+
+
+# Shortest ride
+
+```{r}
+aggregate(all_trips_v2$ride_length ~ all_trips_v2$member_casual, FUN = min)
+```
+
+
+
+
+The average ride time by each day for members vs casual users
+
+```{r}
+aggregate(all_trips_v2$ride_length ~ all_trips_v2$member_casual + all_trips_v2$day_of_week, FUN = mean)
+```
+
+
+# The days of the week are out of order. Let's fix that
+
+```{r}
+all_trips_v2$day_of_week <- ordered(all_trips_v2$day_of_week, levels=c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"))
+```
+
+
+Let's run the average ride time by each day for members vs casual users
+
+```{r}
+aggregate(all_trips_v2$ride_length ~ all_trips_v2$member_casual + all_trips_v2$day_of_week, FUN = mean)
+```
+
+# Analyze ridership data by type and weekday
+
+
+```{r}
+all_trips_v2 %>% 
+  mutate(weekday = wday(started_at, label = TRUE)) %>%  #creates weekday field using wday()
+  group_by(member_casual, weekday) %>%  #groups by usertype and weekday
+  summarise(number_of_rides = n()							#calculates the number of rides and average duration 
+  ,average_duration = mean(ride_length)) %>% 		# calculates the average duration
+  arrange(weekday, member_casual)
+```
+
+
+# Let's visualize the number of rides by rider type
+
+
+```{r}
+all_trips_v2 %>% 
+  mutate(weekday = wday(started_at, label = TRUE)) %>% 
+  group_by(member_casual, weekday) %>% 
+  summarise(number_of_rides = n()
+            ,average_duration = mean(ride_length)) %>% 
+  arrange(member_casual, weekday)  %>% 
+  ggplot(aes(x = weekday, y = number_of_rides, fill = member_casual)) +
+  geom_col(position = "dodge") + 
+  labs(title = "Number of Rides by Rider Type", subtitle = "Daily", fill = "Rider Type") +
+  xlab("Weekday") + ylab("Number of Rides") 
+```
+
+From the bar graph that the member riders have higher number of rides on weekdays and casual riders are higher on Saturdays. Saturdays have the highest number of riders for both casual and member.
+
+
+# Let's create a visualization for average duration
+
+```{r}
+all_trips_v2 %>% 
+  mutate(weekday = wday(started_at, label = TRUE)) %>% 
+  group_by(member_casual, weekday) %>% 
+  summarise(number_of_rides = n()
+            ,average_duration = mean(ride_length)) %>% 
+  arrange(member_casual, weekday)  %>% 
+  ggplot(aes(x = weekday, y = average_duration, fill = member_casual)) +
+  geom_col(position = "dodge") +
+  labs(title = "Average Duration", subtitle = "Daily", fill = "Rider Type") +
+  xlab("Weekday") + ylab("Average Duration")
+```
+Casual riders have higher average duration than member riders. During weekends we see a higher average duration than weekdays for both rider types. For member riders, there's a small change of duration between weekdays and weekends but a higher change for casual riders.
+
+
+
+# Analyze ridership data by type and month
+
+```{r}
+all_trips_v2 %>% 
+  mutate(monthly = month(started_at, label = TRUE)) %>%  #creates monthly field using month()
+  group_by(member_casual, monthly, year) %>%  #groups by usertype and monthly
+  summarise(number_of_rides = n()							#calculates the number of rides and average duration 
+  ,average_duration = mean(ride_length)) %>% 		# calculates the average duration
+  arrange(year, monthly, member_casual)								# sorts
+```
+
+# Let's create a visualization for the number of rides by rider type monthly
+
+```{r}
+all_trips_v2 %>% 
+  mutate(monthly = format(as.Date(started_at), "%Y-%m")) %>% 
+  group_by(member_casual, monthly, year) %>% 
+  summarise(number_of_rides = n()
+            ,average_duration = mean(ride_length), .groups = "keep") %>% 
+  arrange(year, monthly, member_casual)  %>% 
+  ggplot(aes(x = monthly, y = number_of_rides, group = member_casual)) +
+  geom_line(aes(color=member_casual)) + 
+  geom_point(aes(color=member_casual)) +
+  theme(axis.text.x = element_text(angle = 45)) +
+  labs(title = "Rider type and the number of rides", subtitle = "Monthly", color = "Rider Type") +
+  xlab("Month") + ylab("Number of Rides")
+```
+* Month of August 2020 had the hightest number of ride for both casual and member
+* Month of February 2021 had the lowest number of ride for both casual and member
+* All through the year, member riders has highest number of rides.
+
+
+# Let's create a visualization for average duration monthly
+
+```{r}
+all_trips_v2 %>% 
+  mutate(monthly = format(as.Date(started_at), "%Y-%m")) %>% 
+  group_by(member_casual, monthly, year) %>% 
+  summarise(number_of_rides = n()
+            ,average_duration = mean(ride_length), .groups = "keep") %>% 
+  arrange(year, monthly, member_casual)  %>% 
+  ggplot(aes(x = monthly, y = average_duration, group = member_casual)) +
+  geom_line(aes(color=member_casual)) + 
+  geom_point(aes(color=member_casual)) +
+  theme(axis.text.x = element_text(angle = 45)) +
+  labs(title = "Average Ride Duration by Rider Type", subtitle = "Monthly", color = "Rider Type") +
+  xlab("Month") + ylab("Average Duration (in seconds)")
+```
+
+* Member riders, the highest average duration was in April 2020 and lowest was in January 2021
+* Casual riders, the highest average duration was in April 2020 and lowest was in January 2021
+
+## What we found during this analysis:
+
+* The casual riders rent the bikes more during the weekends while member riders are renting consistently throughout the week.
+* The casual riders' average duration is almost triple the time of the member riders.
+* Both casual and member riders ride the bikes more during summer and less during winter
+* Both casual and member riders ride the bike longer during summer and shorter during winter
+
+
+
+
+## STEP 4 Recommendations
+* Make a "weekend campaign" membership sign-up emphasizing how much they can save if they convert into member riders.
+
+*Make an ad that focus on saving as member for longer ride duration to get casual sign-up as member riders.
+
+*Make ads and campaigns during summer because there are higher numbers of casual riders at that time.
